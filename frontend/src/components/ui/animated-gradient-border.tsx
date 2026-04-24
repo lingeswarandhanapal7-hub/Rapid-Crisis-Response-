@@ -27,9 +27,9 @@ interface BorderRotateProps extends Omit<HTMLAttributes<HTMLDivElement>, 'classN
 }
 
 const defaultGradientColors = {
-  primary: '#06b6d4', // cyan-500
-  secondary: '#10b981', // emerald-500
-  accent: '#3b82f6' // blue-500
+  primary: '#3b82f6', // blue-500
+  secondary: '#6366f1', // indigo-500
+  accent: '#a855f7' // purple-500
 };
 
 const BorderRotate: React.FC<BorderRotateProps> = ({
