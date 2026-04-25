@@ -5,6 +5,7 @@ const { Server } = require('socket.io');
 const cors = require('cors');
 const morgan = require('morgan');
 const connectDB = require('./src/config/db');
+const initializeEmergencySocket = require('./src/emergency/socketHandler');
 
 // Connect DB
 connectDB();
@@ -33,6 +34,10 @@ const io = new Server(httpServer, {
 // Make io accessible in routes
 app.set('io', io);
 
+// Initialize Emergency System
+const emergencySocketHandlers = initializeEmergencySocket(io);
+app.set('emergencySocket', emergencySocketHandlers);
+
 // Middleware
 app.use(cors({ origin: corsOrigin, credentials: true }));
 app.use(express.json());
@@ -43,6 +48,7 @@ if (process.env.NODE_ENV !== 'production') app.use(morgan('dev'));
 app.use('/api/auth', require('./src/routes/auth'));
 app.use('/api/patients', require('./src/routes/patients'));
 app.use('/api/users', require('./src/routes/users'));
+app.use('/api/emergency', require('./src/routes/emergencyRoutes'));
 
 // Health check
 app.get('/api/health', (req, res) => {
@@ -56,6 +62,11 @@ io.on('connection', (socket) => {
   socket.on('join:role', (role) => {
     socket.join(role);
     console.log(`   └─ Joined room: ${role}`);
+  });
+
+  socket.on('join:user', (userId) => {
+    socket.join(`user:${userId}`);
+    console.log(`   └─ Joined room: user:${userId}`);
   });
 
   socket.on('disconnect', () => {

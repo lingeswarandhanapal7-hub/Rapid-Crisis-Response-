@@ -8,6 +8,8 @@ import { patientApi, userApi } from '../../api/services'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts'
 import { format } from 'date-fns'
 import toast from 'react-hot-toast'
+import EmergencyButton from '../../components/emergency/EmergencyButton'
+import { useAuthStore } from '../../store/authStore'
 
 const statusColors = {
   critical: 'text-red-600 bg-red-50 border-red-200',
@@ -26,6 +28,7 @@ export default function PatientDetail({ role = 'chief', patientId: propId, isMod
   const id = propId || routeId
   const navigate = useNavigate()
   const qc = useQueryClient()
+  const { user } = useAuthStore()
   const [doctorId, setDoctorId] = useState('')
   const [nurseId, setNurseId] = useState('')
 
@@ -259,6 +262,33 @@ export default function PatientDetail({ role = 'chief', patientId: propId, isMod
           )}
         </div>
       </div>
+      
+      {/* Test Auto-Alert Button (Dev only) */}
+      <div className={`mt-6 flex ${isModal ? 'justify-start' : 'justify-end'}`}>
+        <button
+          onClick={() => {
+            const vitals = {
+              pulse: 155,
+              bloodPressure: '180/110',
+              temperature: 101.5,
+              oxygenSaturation: 88
+            }
+            patientApi.updateVitals(patient._id, vitals)
+              .then(() => toast.success('Simulated critical vitals drop!'))
+              .catch(() => toast.error('Failed to simulate vitals'))
+          }}
+          className="flex items-center gap-2 text-xs px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg font-semibold transition-colors border border-slate-300 shadow-sm"
+        >
+          🧪 Simulate Vitals Drop (Test Alert)
+        </button>
+      </div>
+      
+      {/* Emergency Button for Staff */}
+      {patient && (
+        <div className={`fixed ${isModal ? 'bottom-6 right-6' : 'bottom-6 right-6'} z-[200]`}>
+          <EmergencyButton role={user?.role} patientId={patient._id} userId={user?._id || user?.id} />
+        </div>
+      )}
     </>
   )
 

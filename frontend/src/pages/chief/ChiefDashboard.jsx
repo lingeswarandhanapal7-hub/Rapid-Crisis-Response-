@@ -103,8 +103,8 @@ export default function ChiefDashboard() {
             </section>
           )}
 
-          {/* Simple Staff Preview */}
-          <div className="grid grid-cols-2 gap-4 mb-8">
+          {/* Simple Staff & Emergency Preview */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
             <BorderRotate borderRadius={20} borderWidth={1} animationSpeed={12}>
               <div className="glass-card p-5 h-full bg-white/60 backdrop-blur-md">
                 <div className="flex items-center gap-2 mb-4">
@@ -123,6 +123,18 @@ export default function ChiefDashboard() {
                   <span className="ml-auto text-xs text-slate-400">{nurses.length} active</span>
                 </div>
                 <p className="text-xs text-slate-500">Coordinate nursing shifts and patient care tasks.</p>
+              </div>
+            </BorderRotate>
+            <BorderRotate borderRadius={20} borderWidth={1} animationSpeed={8}>
+              <div 
+                onClick={() => window.location.assign('/chief/emergency')}
+                className="glass-card p-5 h-full bg-red-50/60 backdrop-blur-md cursor-pointer hover:bg-red-100/60 transition-colors border border-red-200"
+              >
+                <div className="flex items-center gap-2 mb-4">
+                  <AlertTriangle size={16} className="text-red-600 animate-pulse" />
+                  <h2 className="font-semibold text-red-700 text-sm">Crisis Dashboard</h2>
+                </div>
+                <p className="text-xs text-red-600/70">Manage active emergencies and critical rapid responses.</p>
               </div>
             </BorderRotate>
           </div>

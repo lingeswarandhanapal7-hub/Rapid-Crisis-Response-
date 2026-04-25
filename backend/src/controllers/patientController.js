@@ -180,17 +180,65 @@ const updateVitals = async (req, res) => {
     if (io) {
       io.emit('patient:vitals', { patientId: patient._id, pulse, status: patient.status, bloodPressure, temperature, oxygenSaturation });
 
+      // Smart Alert Detection for RCR System
+      const emergencySockets = req.app.get('emergencySocket');
+      const isPulseCritical = pulse < 50 || pulse > 120;
+      const isSpo2Critical = oxygenSaturation < 90;
+      const isTempCritical = temperature < 95 || temperature > 100.4;
+      
+      if (emergencySockets && (isPulseCritical || isSpo2Critical || isTempCritical)) {
+        let breachMetric = 'pulse';
+        let breachValue = pulse;
+        let breachThreshold = 120;
+
+        if (isPulseCritical) {
+           breachThreshold = pulse < 50 ? 50 : 120;
+        } else if (isSpo2Critical) {
+           breachMetric = 'spo2';
+           breachValue = oxygenSaturation;
+           breachThreshold = 90;
+        } else {
+           breachMetric = 'temperature';
+           breachValue = temperature;
+           breachThreshold = temperature < 95 ? 95 : 100.4;
+        }
+
+        emergencySockets.emitVitalsBreach({
+          patient_id: patient._id,
+          metric: breachMetric,
+          value: breachValue,
+          threshold: breachThreshold
+        });
+
+        emergencySockets.emitEmergencyTriggered({
+          emergency_id: Date.now(),
+          patient_id: patient._id,
+          patient_name: patient.name,
+          severity: 'critical',
+          triggered_by: 'system',
+          trigger_type: 'auto',
+          doctorId: patient.assignedDoctorId,
+          nurseId: patient.assignedNurseId
+        });
+      }
+
       // Fire alert if critical
       if (patient.status === 'critical') {
         const alertPayload = {
           type: 'critical',
-          message: `🚨 CRITICAL: ${patient.name} has abnormal pulse (${pulse} bpm)`,
+          message: `🚨 CRITICAL: ${patient.name} has abnormal vitals!`,
           patient: { id: patient._id, name: patient.name },
           doctorId: patient.assignedDoctorId,
           nurseId: patient.assignedNurseId,
           timestamp: new Date(),
         };
-        io.emit('alert:critical', alertPayload);
+        
+        let emitChain = io.to('chief_doctor');
+        if (patient.assignedDoctorId) emitChain = emitChain.to(`user:${patient.assignedDoctorId}`);
+        if (patient.assignedNurseId) emitChain = emitChain.to(`user:${patient.assignedNurseId}`);
+        
+        emitChain.emit('alert:critical', alertPayload);
+        
         await createAudit('ALERT_TRIGGERED', req.user, patient, alertPayload, 'critical');
       } else if (patient.status === 'moderate' && previousStatus !== 'moderate') {
         io.emit('alert:warning', {

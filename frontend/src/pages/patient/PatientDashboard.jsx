@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Heart, Stethoscope, UserCheck, Activity, Thermometer, Wind, TrendingUp } from 'lucide-react'
 import DashboardLayout from '../../components/layout/DashboardLayout'
 import FAB from '../../components/ui/FAB'
+import EmergencyButton from '../../components/emergency/EmergencyButton'
 import { patientApi } from '../../api/services'
 import { useAuthStore } from '../../store/authStore'
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid, ReferenceLine } from 'recharts'
@@ -177,8 +178,11 @@ export default function PatientDashboard() {
         </div>
       </div>
       
-      {/* Floating Action Button */}
-      <FAB tooltip="Request Assistance" onClick={() => console.log('Request Assistance')} />
+      {/* Floating Action Button & Emergency */}
+      <div className="fixed bottom-6 right-6 flex flex-col gap-4 items-end z-50">
+        <FAB tooltip="Request Assistance" onClick={() => console.log('Request Assistance')} />
+        <EmergencyButton role={user?.role} patientId={patient?._id || patient?.id} userId={user?._id || user?.id} />
+      </div>
     </DashboardLayout>
   )
 }

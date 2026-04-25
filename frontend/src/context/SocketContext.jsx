@@ -1,4 +1,4 @@
-import { createContext, useContext, useEffect, useRef } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
 import { io } from 'socket.io-client'
 import { useAuthStore } from '../store/authStore'
 import { useAlertStore } from '../store/alertStore'
@@ -10,20 +10,26 @@ export const SocketProvider = ({ children }) => {
   const { isAuthenticated, user } = useAuthStore()
   const { addAlert } = useAlertStore()
   const queryClient = useQueryClient()
-  const socketRef = useRef(null)
+  const [socketInstance, setSocketInstance] = useState(null)
 
   useEffect(() => {
     if (!isAuthenticated || !user) return
 
     const socket = io('http://localhost:5000', {
-      transports: ['websocket'],
       withCredentials: true,
     })
 
-    socketRef.current = socket
+    setSocketInstance(socket)
 
     socket.on('connect', () => {
       socket.emit('join:role', user.role)
+      const userId = user._id || user.id
+      if (userId) {
+        socket.emit('join:user', userId)
+      }
+      if (user.role === 'chief_doctor') {
+        socket.emit('emergency:join', { role: user.role })
+      }
     })
 
     socket.on('patient:vitals', (data) => {
@@ -50,12 +56,12 @@ export const SocketProvider = ({ children }) => {
 
     return () => {
       socket.disconnect()
-      socketRef.current = null
+      setSocketInstance(null)
     }
   }, [isAuthenticated, user])
 
   return (
-    <SocketContext.Provider value={socketRef.current}>
+    <SocketContext.Provider value={socketInstance}>
       {children}
     </SocketContext.Provider>
   )

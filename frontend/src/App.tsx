@@ -10,8 +10,13 @@ import DoctorDashboard from './pages/doctor/DoctorDashboard'
 import NurseDashboard from './pages/nurse/NurseDashboard'
 import PatientDashboard from './pages/patient/PatientDashboard'
 import PatientDetail from './pages/shared/PatientDetail'
+import AlertFeed from './components/emergency/AlertFeed'
+import CrisisDashboard from './components/emergency/CrisisDashboard'
+import { useAuthStore } from './store/authStore'
 
 export default function App() {
+  const { user } = useAuthStore()
+
   return (
     <BrowserRouter>
       <SocketProvider>
@@ -29,6 +34,7 @@ export default function App() {
             error: { iconTheme: { primary: '#ef4444', secondary: '#fff' } },
           }}
         />
+        {user && <AlertFeed userId={user.id} />}
 
         <Routes>
           {/* Public */}
@@ -36,6 +42,11 @@ export default function App() {
           <Route path="/" element={<Navigate to="/login" replace />} />
 
           {/* Chief Doctor */}
+          <Route path="/chief/emergency" element={
+            <ProtectedRoute allowedRoles={['chief_doctor']}>
+              <CrisisDashboard currentUserRole={user?.role} currentUserId={user?.id} />
+            </ProtectedRoute>
+          } />
           <Route path="/chief" element={
             <ProtectedRoute allowedRoles={['chief_doctor']}>
               <ChiefDashboard />

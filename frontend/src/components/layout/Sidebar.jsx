@@ -2,7 +2,7 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   LayoutDashboard, Users, Activity, LogOut,
-  Stethoscope, Heart, UserCheck, User
+  Stethoscope, Heart, UserCheck, User, AlertTriangle
 } from 'lucide-react'
 import { useAuthStore } from '../../store/authStore'
 
@@ -11,6 +11,7 @@ const navByRole = {
     { to: '/chief', label: 'Overview', icon: LayoutDashboard },
     { to: '/chief/patients', label: 'All Patients', icon: Users },
     { to: '/chief/staff', label: 'Staff', icon: Stethoscope },
+    { to: '/chief/emergency', label: 'Crisis Dashboard', icon: AlertTriangle },
   ],
   doctor: [
     { to: '/doctor', label: 'Dashboard', icon: LayoutDashboard },
